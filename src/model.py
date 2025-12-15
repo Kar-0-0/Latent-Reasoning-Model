@@ -87,7 +87,6 @@ class Block(nn.Module):
             self,
             latent_dim,
             attn_dim,
-            input_length,
             n_heads,
             dropout
     ):
@@ -96,7 +95,6 @@ class Block(nn.Module):
         self.sa = SelfAttention(
             attn_dim,
             latent_dim,
-            input_length,
             n_heads
         )
 
@@ -123,7 +121,7 @@ class LatentDecoder(nn.Module):
             dropout
     ):
         super().__init__()
-        self.blocks = nn.Sequential(*[Block(latent_dim, attn_dim, input_length, n_heads, dropout) for _ in range(n_layers)])
+        self.blocks = nn.Sequential(*[Block(latent_dim, attn_dim, n_heads, dropout) for _ in range(n_layers)])
         self.lm_head = nn.Linear(attn_dim, vocab_size)
     
     def forward(self, x):
@@ -157,12 +155,14 @@ class LatentReasoningModel(nn.Module):
             dropout
         )
 
-    def forward(self, x):
+    def forward(self, x, return_latents=True):
         B, _ = x.shape
         z = self.encoder(x) # (B, T, latent_dim)
         _, _, latent_dim = z.shape
         h_0 = torch.zeros(B, latent_dim, device=z.device)
         h = self.latent_update(h_0, z) # (B, T, latent_dim)
         logits = self.decoder(h)
+        if return_latents:
+            return logits, h
 
         return logits
