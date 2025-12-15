@@ -39,7 +39,7 @@ class LatentDynamics(nn.Module):
 
 
 class SelfAttention(nn.Module):
-    def __init__(self, attn_dim, latent_dim, input_length, n_heads):
+    def __init__(self, attn_dim, latent_dim, n_heads):
         super().__init__()
         self.attn_proj = nn.Linear(latent_dim, attn_dim)
         self.qkv = nn.Linear(attn_dim, attn_dim*3)
@@ -92,7 +92,7 @@ class Block(nn.Module):
             dropout
     ):
         super().__init__()
-        self.ln1 = nn.LayerNorm(attn_dim)
+        self.ln1 = nn.LayerNorm(latent_dim)
         self.sa = SelfAttention(
             attn_dim,
             latent_dim,
@@ -166,4 +166,3 @@ class LatentReasoningModel(nn.Module):
         logits = self.decoder(h)
 
         return logits
-
